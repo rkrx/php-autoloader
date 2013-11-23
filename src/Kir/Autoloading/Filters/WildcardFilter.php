@@ -23,31 +23,19 @@ class WildcardFilter implements Filter {
 	}
 
 	/**
-	 * @param string $namespaceWithoutLeadingBackslash
+	 * @param string $patternWithoutLeadingBackslash
 	 * @return $this
 	 */
-	public function includeNamespace($namespaceWithoutLeadingBackslash) {
-		$namespace = ltrim($namespaceWithoutLeadingBackslash, '\\');
-		$pattern = Pattern::create($namespace);
-		$this->filters[] = function ($className) use ($namespace, $pattern) {
-			/* @var $pattern Pattern */
-			return $pattern->match($className);
-		};
-		return $this;
+	public function includeNamespace($patternWithoutLeadingBackslash) {
+		return $this->addTester($patternWithoutLeadingBackslash, true);
 	}
 
 	/**
-	 * @param string $namespaceWithoutLeadingBackslash
+	 * @param string $patternWithoutLeadingBackslash
 	 * @return $this
 	 */
-	public function excludeNamespace($namespaceWithoutLeadingBackslash) {
-		$namespace = ltrim($namespaceWithoutLeadingBackslash, '\\');
-		$pattern = Pattern::create($namespace);
-		$this->filters[] = function ($className) use ($namespace, $pattern) {
-			/* @var $pattern Pattern */
-			return !$pattern->match($className);
-		};
-		return $this;
+	public function excludeNamespace($patternWithoutLeadingBackslash) {
+		return $this->addTester($patternWithoutLeadingBackslash, false);
 	}
 
 	/**
@@ -58,11 +46,28 @@ class WildcardFilter implements Filter {
 		if ($this->optimisticFiltering && !count($this->filters)) {
 			return false;
 		}
+		$result = false;
 		foreach ($this->filters as $filter) {
-			if (!$filter($className)) {
-				return false;
-			}
+			$result = $filter($className, $result);
 		}
-		return true;
+		return $result;
+	}
+
+	/**
+	 * @param string $unnormalizedPattern
+	 * @param $include
+	 * @return $this
+	 */
+	private function addTester($unnormalizedPattern, $include) {
+		$normalizedPattern = ltrim($unnormalizedPattern, '\\');
+		$pattern = Pattern::create($normalizedPattern);
+		$this->filters[] = function ($className, $bit) use ($pattern, $include) {
+			/* @var $pattern Pattern */
+			if($pattern->match($className)) {
+				return $include;
+			}
+			return $bit;
+		};
+		return $this;
 	}
 } 

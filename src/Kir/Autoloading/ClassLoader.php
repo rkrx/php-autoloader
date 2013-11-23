@@ -29,7 +29,7 @@ class ClassLoader {
 	public function __construct($basePath = null, $autoRegister = true) {
 		$this->basePath = $basePath;
 		$this->autoloader = function ($className) {
-			$this->includeClass($className);
+			return $this->includeClass($className);
 		};
 		if ($autoRegister) {
 			$this->register();
