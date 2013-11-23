@@ -5,6 +5,7 @@ set_include_path="on" required!
 
 ```php
 ClassLoader::getInstance()
+->excludeNamespace('*')
 ->includeNamespace('Kir\\*')
 ->setBasePath(__DIR__)
 ->addPath('src')
