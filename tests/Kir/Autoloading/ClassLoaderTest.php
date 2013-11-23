@@ -5,8 +5,13 @@ use Kir\Autoloading\Test\Obj;
 
 class ClassLoaderTest extends \PHPUnit_Framework_TestCase {
 	public function setUp() {
-		ClassLoader::getInstance()
-		->setBasePath(__DIR__.'/../../..')
+		$filter = new Filters\WildcardFilter();
+		$filter->includeNamespace('Kir\\*');
+		
+		$loader = new ClassLoader();
+		$loader
+		->addFilter($filter)
+		->setBasePath(AUTOLOADER__ROOT_PATH)
 		->addPath('tests');
 	}
 	

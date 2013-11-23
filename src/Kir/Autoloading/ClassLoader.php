@@ -1,29 +1,21 @@
 <?php
 namespace Kir\Autoloading;
 
-use Kir\StringUtils\Matching\Wildcards\Pattern;
-
 class ClassLoader {
 	/**
-	 * @return $this
+	 * @var MapProvider[]
 	 */
-	public static function getInstance() {
-		static $instance = null;
-		if ($instance === null) {
-			$instance = new static();
-		}
-		return $instance;
-	}
+	private $mapProviders = [];
+
+	/**
+	 * @var Filter[]
+	 */
+	private $filters = [];
 
 	/**
 	 * @var string
 	 */
 	private $basePath = null;
-
-	/**
-	 * @var array
-	 */
-	private $filters = array();
 
 	/**
 	 * @var \Closure
@@ -34,16 +26,16 @@ class ClassLoader {
 	 * @param string $basePath
 	 * @param bool $autoRegister
 	 */
-	public function __construct($basePath = null, $autoRegister=true) {
+	public function __construct($basePath = null, $autoRegister = true) {
 		$this->basePath = $basePath;
 		$this->autoloader = function ($className) {
 			$this->includeClass($className);
 		};
-		if($autoRegister) {
+		if ($autoRegister) {
 			$this->register();
 		}
 	}
-	
+
 	/**
 	 * @return $this
 	 */
@@ -61,33 +53,23 @@ class ClassLoader {
 	}
 
 	/**
-	 * @param string $namespaceWithoutLeadingBackslash
+	 * @param MapProvider $provider
 	 * @return $this
 	 */
-	public function includeNamespace($namespaceWithoutLeadingBackslash) {
-		$namespace = ltrim($namespaceWithoutLeadingBackslash, '\\');
-		$pattern = Pattern::create($namespace);
-		$this->filters[] = function ($className) use ($namespace, $pattern) {
-			/* @var $pattern Pattern */
-			return $pattern->match($className);
-		};
+	public function addClassMapProvider(MapProvider $provider) {
+		$this->mapProviders[] = $provider;
 		return $this;
 	}
 
 	/**
-	 * @param string $namespaceWithoutLeadingBackslash
+	 * @param Filter $filter
 	 * @return $this
 	 */
-	public function excludeNamespace($namespaceWithoutLeadingBackslash) {
-		$namespace = ltrim($namespaceWithoutLeadingBackslash, '\\');
-		$pattern = Pattern::create($namespace);
-		$this->filters[] = function ($className) use ($namespace, $pattern) {
-			/* @var $pattern Pattern */
-			return !$pattern->match($className);
-		};
+	public function addFilter(Filter $filter) {
+		$this->filters[] = $filter;
 		return $this;
 	}
-
+	
 	/**
 	 * @param string $basePath
 	 * @return $this
@@ -115,25 +97,15 @@ class ClassLoader {
 	 * @param string $className
 	 * @return bool
 	 */
-	private function testClass($className) {
-		foreach($this->filters as $filter) {
-			if(!$filter($className)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * @param string $className
-	 * @return bool
-	 */
 	private function includeClass($className) {
 		$className = ltrim($className, '\\');
-		if(!$this->testClass($className)) {
+		if (!$this->testClass($className)) {
 			return false;
 		}
-		$filename = str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
+		$filename = $this->getFilenameFromMapProviders($className);
+		if($filename === null) {
+			$filename = str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
+		}
 		$this->includeFile($filename);
 	}
 
@@ -146,13 +118,41 @@ class ClassLoader {
 	}
 
 	/**
+	 * @param string $className
+	 * @return bool
+	 */
+	private function testClass($className) {
+		foreach ($this->filters as $filter) {
+			if (!$filter->test($className)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @param string $className
+	 * @return string
+	 */
+	private function getFilenameFromMapProviders($className) {
+		$filename = null;
+		foreach ($this->mapProviders as $mapProvider) {
+			if ($mapProvider->has($className)) {
+				$filename = $mapProvider->resolveToFilename($className);
+				break;
+			}
+		}
+		return $filename;
+	}
+
+	/**
 	 * @param string $path1
 	 * @param string $path2
 	 * @return string
 	 */
 	private function concatPaths($path1, $path2) {
 		$path1 = rtrim($path1, '/\\');
-		$path2 = rtrim($path2, '/\\');
+		$path2 = ltrim($path2, '/\\');
 		return $path1 . DIRECTORY_SEPARATOR . $path2;
 	}
 }
