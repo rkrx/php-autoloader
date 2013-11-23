@@ -1,24 +1,22 @@
 {
-    "name": "rkr/php-autoloader",
-    "description": "A psr4 compatible class loader for php5.3+. set_include_path=\"on\" required!",
+	"name": "rkr/php-autoloader",
+	"description": "A psr4 compatible class loader for php5.3+. set_include_path=\"on\" required!",
 	"config": {
 		"vendor-dir": "composer"
 	},
-    "require": {
-        "php": ">= 5.3",
-        "rkr/wildcards": "1.*"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "3.7.*"
-    },
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Ron Kirschler",
-            "email": "ron.kirschler@gmail.com"
-        }
-    ],
-    "minimum-stability": "stable",
+	"require": {
+		"php": ">= 5.3",
+		"rkr/wildcards": "1.*"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "3.7.*"
+	},
+	"license": "MIT",
+	"authors": [{
+		"name": "Ron Kirschler",
+		"email": "ron.kirschler@gmail.com"
+	}],
+	"minimum-stability": "stable",
 	"autoload": {
 		"psr-0": {
 			"Kir\\Autoloading": "src/"
