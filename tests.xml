@@ -1,0 +1,12 @@
+<phpunit bootstrap="inc/bootstrap.php"
+		 backupGlobals="false"
+		 backupStaticAttributes="false"
+		 strict="true"
+		 verbose="true"
+		 timeoutForSmallTests="5">
+	<testsuites>
+		<testsuite name="ClassLoader">
+			<file>tests/Kir/Autoloading/ClassLoader.php</file>
+		</testsuite>
+	</testsuites>
+</phpunit>
