@@ -1,7 +1,8 @@
-A psr4 compatible class loader for php5.3+
+A class loader for php5.3+
 ==========================================
 
-set_include_path="on" required!
+ * psr4 compatible
+ * set_include_path="on" is required!
 
 ```php
 ClassLoader::getInstance()
